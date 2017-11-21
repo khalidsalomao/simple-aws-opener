@@ -15,9 +15,6 @@ function saveToDisk(key, data) {
 
 class AppStore {
   @observable favorites = []
-  @observable form_data = {}
-  @observable is_loading = true
-  @observable is_saving = false
 
   constructor() {
     storage.setDataPath(os.tmpdir());
@@ -25,8 +22,8 @@ class AppStore {
   }
 
   addFavorite(rule) {
-    rule.count += 1;
-    if (!this.favorites.find(rule)) {
+    rule.count = (rule.count || 0) + 1;
+    if (!this.favorites.find(i => i === rule)) {
       this.favorites.push(rule);
     }
     this.favorites.sort((a, b) => (a.count || 0) - (b.count || 0));
