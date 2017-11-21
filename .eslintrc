@@ -1,0 +1,22 @@
+{
+  "extends": ["airbnb"],
+  "plugins": ["class-property"],
+  "parser": "babel-eslint",
+  "rules": {
+    "comma-dangle": 0,
+    "new-cap": 0,
+    "no-unders": 0,
+    "no-underscore-dangle": 0,
+    "max-len": 0,
+    "no-param-reassign": 0,
+    "no-console": 0,
+    "no-restricted-syntax": 0,
+    "no-await-in-loop": 0,
+    "prefer-destructuring": 0,
+    "react/jsx-filename-extension": 0,
+    "react/jsx-curly-brace-presence": 0,
+    "react/react-in-jsx-scope": 0,
+    "import/no-extraneous-dependencies": 0,
+    "jsx-a11y/anchor-is-valid": 0
+  }
+}
