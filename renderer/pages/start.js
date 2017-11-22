@@ -40,6 +40,10 @@ class Start extends React.Component {
     AppStore.addFavorite({ id: `sg-${new Date().getTime()}`, name: 'db-production2' });
   };
 
+  onClearClick(e) {
+    AppStore.clear();
+  }
+
   render() {
     return (
       <Layout>
@@ -47,6 +51,7 @@ class Start extends React.Component {
           <h3>Favorite rules</h3>
           <FavoriteRules />
           <Button raised onClick={this.onClick2}>click me!</Button>
+          <Button raised onClick={this.onClearClick}>Clear</Button>
           <hr />
           <div>Hello World.</div>
           <Button raised color="primary" onClick={this.onClick}>click me!</Button>

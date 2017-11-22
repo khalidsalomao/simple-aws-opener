@@ -10,7 +10,7 @@ winston.configure({
       humanReadableUnhandledException: true
     }),
     new (winston.transports.File)({
-      level: process.env.LOGLEVEL || 'info',
+      level: process.env.LOGLEVELFILE || process.env.LOGLEVEL || 'info',
       maxFiles: 3,
       maxsize: 1024 * 1024,
       maxRetries: 3,

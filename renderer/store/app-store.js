@@ -1,9 +1,7 @@
 import { observable } from 'mobx';
-import os from 'os';
 import storage from 'electron-json-storage';
 
 import logger from '../common/logger';
-
 
 function saveToDisk(key, data) {
   storage.set(key, data, null, (err) => {
@@ -13,20 +11,54 @@ function saveToDisk(key, data) {
   });
 }
 
+// TODO: refine this match
+function ruleEquals(ruleA, ruleB) {
+  return ruleA.id === ruleB.id &&
+    ruleA.name === ruleB.name;
+}
+
 class AppStore {
-  @observable favorites = []
+  @observable name = 'oi';
+  @observable favorites = [];
 
   constructor() {
-    storage.setDataPath(os.tmpdir());
-    logger.debug(`Local storage location: ${storage.getDefaultDataPath()}`);
+    this.init();
+  }
+
+  async init() {
+    const storageMode = (process.env.STORAGEMODE || '').trim().toLowerCase();
+    if (storageMode === 'tmpdir') {
+      storage.setDataPath(require('os').tmpdir()); // eslint-disable-line global-require
+    }
+    logger.debug(`Local storage location: ${storage.getDataPath()}`);
+
+    this.reload();
   }
 
   addFavorite(rule) {
     rule.count = (rule.count || 0) + 1;
-    if (!this.favorites.find(i => i === rule)) {
+    if (!this.favorites.find(i => ruleEquals(i, rule))) {
       this.favorites.push(rule);
     }
-    this.favorites.sort((a, b) => (a.count || 0) - (b.count || 0));
+    // note: observable sort returns a new instance
+    this.favorites = this.favorites.sort((a, b) => (b.count || 0) - (a.count || 0));
+    saveToDisk('favorite-rules', this.favorites.slice());
+  }
+
+  reload() {
+    storage.get('favorite-rules', null, (err, data) => {
+      if (err) {
+        logger.error('failed to load from storage', err);
+      }
+      this.favorites = data || [];
+    });
+  }
+
+  removeFavorite(rule) {
+    const item = this.favorites.find(i => ruleEquals(i, rule));
+    if (item) {
+      this.favorites.remove(item);
+    }
     saveToDisk('favorite-rules', this.favorites);
   }
 

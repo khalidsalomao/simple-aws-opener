@@ -1,12 +1,15 @@
 class storage {
   dataPath;
-  dataSet = [];
+  dataSet = {};
   returnError;
 
   setDataPath(directory) {
     this.dataPath = directory;
   }
   getDataPath() {
+    return this.dataPath;
+  }
+  getDefaultDataPath() {
     return this.dataPath;
   }
   get(key, options, callback) {
@@ -22,7 +25,7 @@ class storage {
   }
 
   setResults(data) {
-    this.dataSet = data;
+    this.dataSet = data || {};
   }
 
   setReturnError(value) {

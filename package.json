@@ -8,7 +8,8 @@
     "start": "electron .",
     "build": "next build renderer && next export renderer",
     "dist": "yarn run build && build --dir",
-    "lint": "yarn eslint renderer"
+    "lint": "yarn eslint renderer",
+    "test": "yarn jest"
   },
   "build": {
     "files": [
@@ -43,5 +44,12 @@
     "material-ui": "^1.0.0-beta.21",
     "mobx-react": "^4.3.4",
     "winston": "^2.4.0"
+  },
+  "jest": {
+    "automock": false,
+    "setupTestFrameworkScriptFile": "<rootDir>/jest-setup.js",
+    "setupFiles": [
+      "<rootDir>/shim.js"
+    ]
   }
 }

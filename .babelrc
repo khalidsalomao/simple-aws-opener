@@ -2,15 +2,14 @@
   "presets": [
     "next/babel"
   ],
+  "plugins": ["transform-decorators-legacy","transform-class-properties"],
   "env": {
     "test": {
       "presets": [
         ["env", { "modules": "commonjs" }],
         "next/babel"
-      ]
+      ],
+      "plugins": ["transform-decorators-legacy","transform-class-properties"]
     }
-  },
-  "plugins": [
-    "transform-decorators-legacy"
-  ]
+  }
 }

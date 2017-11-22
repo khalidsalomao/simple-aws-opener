@@ -108,7 +108,7 @@ function Layout({ children, title }) {
       <style jsx>{`
         .container-fluid {
           height: 100%;
-          padding: 25px;
+          padding: 12px 20px;
         }
 
         nav {
