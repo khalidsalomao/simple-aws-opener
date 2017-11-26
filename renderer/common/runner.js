@@ -1,10 +1,12 @@
 import ChildProcess from 'child_process';
+import logger from '../common/logger';
 
 function prepareArgs(args) {
   return typeof args === 'string' ? args.trim().replace(/ {2}/g, '').split(' ') : args;
 }
 
 function runCmd(cmd, args) {
+  logger.debug(cmd, prepareArgs(args).join(' '));
   return new Promise((resolve, reject) => {
     const child = ChildProcess.spawn(cmd, prepareArgs(args));
     let resp = '';

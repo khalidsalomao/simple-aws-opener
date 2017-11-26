@@ -17,7 +17,8 @@ function mostOcurrences(list, name) {
   const counts = {};
   for (let i = 0; i < list.length; i += 1) {
     const e = list[i];
-    counts[e[name]] = (counts[e[name]] || 1) + 1;
+    const c = (e.count || 1) / 3;
+    counts[e[name]] = (counts[e[name]] || 1) + 1 + c;
     if (counts[top] < counts[e[name]]) {
       top = e[name];
     }
@@ -79,18 +80,22 @@ class AppStore {
   }
 
   addFavorite(rule) {
-    const existingRule = this.favorites.find(i => ruleEquals(i, rule));
+    const list = this.favorites.slice();
+    const existingRule = list.find(i => ruleEquals(i, rule));
     if (!existingRule) {
       rule.id = rule.id || new Date().getTime();
       rule.count = (rule.count || 0) + 1;
       rule.ipList = (rule.ipList || []).sort();
-      this.favorites.push(rule);
+      if (list.length > 100) {
+        list.pop();
+      }
+      list.push(rule);
     } else {
       existingRule.count = (existingRule.count || 0) + 1;
     }
     // note: observable sort returns a new instance
-    this.favorites = this.favorites.sort((a, b) => (b.count || 0) - (a.count || 0));
-    saveToDisk('favorite-rules', this.favorites.slice());
+    this.favorites = list.sort((a, b) => (b.count || 0) - (a.count || 0));
+    saveToDisk('favorite-rules', list);
   }
 
 

@@ -18,6 +18,10 @@ class RuleOpenerForm extends React.Component {
     this.state = {
       updatingIp: false
     };
+
+    setTimeout(() => {
+      this.onGetMyIp();
+    }, 100);
   }
 
   onInputChange = (value, event) => { AppStore.ruleForm[event.target.name] = value; }
@@ -26,11 +30,10 @@ class RuleOpenerForm extends React.Component {
   onAddRule = async () => {
     const rule = this.getCurrentRule();
 
-    AppStore.addFavorite(rule);
-
     try {
       const r = await AwsOpener.addRule(rule);
       if (r.result) {
+        AppStore.addFavorite(rule);
         AppStore.printEvent(`Success - rule added to security group. ${JSON.stringify(rule)}`);
       } else {
         AppStore.printEvent(`Error - failed to add rule. ${r.message}`);

@@ -36,7 +36,7 @@ async function listGroups(group, region) {
 }
 
 async function addRule(rule) {
-  if (!rule || !rule.ipList || !rule.description) {
+  if (!rule || !rule.ipList || !rule.ipList.length || !rule.description) {
     throw new Error('Invalid rule');
   }
   const args = ['ec2', 'authorize-security-group-ingress'];
@@ -61,13 +61,14 @@ async function addRule(rule) {
     IpRanges: rule.ipList.map(i => ({
       CidrIp: i,
       Description: rule.description
-    }).o)
+    }))
   }];
 
   args.push('--ip-permissions');
   args.push(JSON.stringify(permissions));
 
   const r = await runner.runCmd('aws', args);
+  console.info(r);
   return {
     result: !r,
     message: r
@@ -75,7 +76,7 @@ async function addRule(rule) {
 }
 
 async function revokeRule(rule) {
-  if (!rule || !rule.ipList || !rule.description) {
+  if (!rule || !rule.ipList || !rule.ipList.length || !rule.description) {
     throw new Error('Invalid rule');
   }
   const args = ['ec2', 'revoke-security-group-ingress'];
@@ -94,11 +95,12 @@ async function revokeRule(rule) {
   }
 
   const permissions = [{
-    IpProtocol: rule.IpProtocol || 'tcp',
-    FromPort: rule.FromPort,
-    ToPort: rule.ToPort,
+    IpProtocol: rule.ipProtocol || 'tcp',
+    FromPort: parseInt(rule.fromPort, 10),
+    ToPort: parseInt(rule.toPort, 10),
     IpRanges: rule.ipList.map(i => ({
       CidrIp: i,
+      Description: rule.description
     }))
   }];
 
@@ -106,6 +108,7 @@ async function revokeRule(rule) {
   args.push(JSON.stringify(permissions));
 
   const r = await runner.runCmd('aws', args);
+  console.info(r);
   return {
     result: !r,
     message: r
