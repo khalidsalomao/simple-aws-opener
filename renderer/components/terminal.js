@@ -15,11 +15,11 @@ class Terminal extends React.Component {
         <style jsx>{`
           pre {
             flex:1;
+            min-height: 60px;
           }
 
           .terminal {
             display: flex;
-            height: 100%;
           }
         `}
         </style>

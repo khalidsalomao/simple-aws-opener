@@ -4,21 +4,27 @@ import PropTypes from 'prop-types';
 
 function Layout({ children, title }) {
   return (
-    <div className="container-fluid">
+    <div>
       <Head>
         <title>Simple AWS Opener{ title ? (` -  ${title}`) : '' }</title>
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+        <link rel="stylesheet" href="/static/react-md.light_blue-deep_orange.min.css" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons" />
       </Head>
-      <header>
-        <nav>
-          <Link href="/start"><a className="menu-item">Home</a></Link> |
-          <Link href="/about"><a className="menu-item">F.A.Q</a></Link>
-        </nav>
-        <hr />
-      </header>
+      <div className="container-fluid">
+        <header>
+          <nav>
+            <Link href="/start"><a className="menu-item">Home</a></Link> |
+            <Link href="/about"><a className="menu-item">F.A.Q</a></Link>
+          </nav>
+          <hr />
+        </header>
 
-      { children }
+        { children }
+
+      </div >
 
       <footer>
         <div>
@@ -59,6 +65,7 @@ function Layout({ children, title }) {
           width:100%;
           border-top: 1px solid #d8dee9;
           font-size: 0.8em
+          background-color: white;
         }
 
         a {
@@ -107,8 +114,8 @@ function Layout({ children, title }) {
 
       <style jsx>{`
         .container-fluid {
-          height: 100%;
-          padding: 12px 20px;
+          height: 100hv;
+          padding: 12px 20px 30px 20px;
         }
 
         nav {

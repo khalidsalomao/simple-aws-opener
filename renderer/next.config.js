@@ -1,6 +1,12 @@
 module.exports = {
   webpack(config) {
     config.target = 'electron-renderer';
+    // Remove minifed react aliases for material-ui so production builds work
+    if (config.resolve.alias) {
+      delete config.resolve.alias.react;
+      delete config.resolve.alias['react-dom'];
+    }
+
     return config;
   },
   exportPathMap() {
