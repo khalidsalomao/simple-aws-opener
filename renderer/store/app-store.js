@@ -17,7 +17,7 @@ function mostOcurrences(list, name) {
   const counts = {};
   for (let i = 0; i < list.length; i += 1) {
     const e = list[i];
-    const c = (e.count || 1) / 3;
+    const c = (e.count || 1) / 2;
     counts[e[name]] = (counts[e[name]] || 1) + 1 + c;
     if (counts[top] < counts[e[name]]) {
       top = e[name];

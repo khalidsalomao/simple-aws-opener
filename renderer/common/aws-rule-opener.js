@@ -1,9 +1,25 @@
 import axios from 'axios';
+import http from 'http';
 import runner from './runner';
 
+// https://askubuntu.com/questions/95910/command-for-determining-my-public-ip
+const ipAddressRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+const ipServices = ['ipinfo.io/ip', 'icanhazip.com'];
 async function getMyIp() {
-  const r = await axios.get('http://ipinfo.io/ip');
-  return r ? r.data : null;
+  const ipList = [];
+  for (const service of ipServices) {
+    try {
+      const r = await axios.get(`http://${service}`, { httpAgent: new http.Agent({ keepAlive: false }) });
+      const ipaddress = (r ? (r.data || '') : '').trim();
+
+      if (ipaddress && ipAddressRegex.test(ipaddress) && ipList.indexOf(ipaddress) < 0) {
+        ipList.push(ipaddress);
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+  return ipList;
 }
 
 async function listRegions() {
@@ -76,7 +92,7 @@ async function addRule(rule) {
 }
 
 async function revokeRule(rule) {
-  if (!rule || !rule.ipList || !rule.ipList.length || !rule.description) {
+  if (!rule || !rule.ipList || !rule.ipList.length) {
     throw new Error('Invalid rule');
   }
   const args = ['ec2', 'revoke-security-group-ingress'];

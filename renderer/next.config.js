@@ -7,6 +7,13 @@ module.exports = {
       delete config.resolve.alias['react-dom'];
     }
 
+    config.plugins = config.plugins.filter((plugin) => {
+      if (plugin.constructor.name === 'UglifyJsPlugin') {
+        return false;
+      }
+      return true;
+    });
+
     return config;
   },
   exportPathMap() {

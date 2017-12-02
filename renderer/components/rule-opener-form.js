@@ -29,12 +29,49 @@ class RuleOpenerForm extends React.Component {
 
   onAddRule = async () => {
     const rule = this.getCurrentRule();
+    if (!rule.description) {
+      AppStore.printEvent('Empty description.');
+    }
 
     try {
+      const details = await AwsOpener.listGroups(rule.groupId || rule.groupName, rule.region);
+
+      if (!details || !details.SecurityGroups || !details.SecurityGroups[0]) {
+        AppStore.printEvent(`Error loading security group. Response: ${JSON.stringify(details)}`);
+        return;
+      }
+
+      rule.groupName = details.GroupName || details.Description || rule.groupName;
+      rule.groupId = details.GroupId || rule.groupId;
+
+      //   AppStore.printEvent(r.SecurityGroups[0].IpPermissions.find(i => i.FromPort === 1433));
+      //   const ips = r.SecurityGroups[0].IpPermissions.find(i => i.FromPort === 1433).IpRanges;
+      //   AppStore.printEvent(ips.find(i => i.Description === 'khalid.salomao'));
+      //   AppStore.printEvent(ips.find(i => i.CidrIp === '186.242.106.205/32'));
+      // Description: "db-production-2", GroupName: "db-production-2"
+      // CidrIp:"187.99.255.237/32" , Description:"bunker"
+      const ipRanges = (details.SecurityGroups[0].IpPermissions || []).find(i => i.FromPort == rule.fromPort && i.ToPort == rule.toPort).IpRanges || [];
+
+      const existingRule = ipRanges.find(i => (i.Description || '').toLowerCase() === rule.description.toLowerCase());
+
       const r = await AwsOpener.addRule(rule);
       if (r.result) {
         AppStore.addFavorite(rule);
         AppStore.printEvent(`Success - rule added to security group. ${JSON.stringify(rule)}`);
+
+        if (existingRule && existingRule.CidrIp) {
+          const revokeRule = {
+            region: rule.region,
+            groupId: rule.groupId,
+            ipList: [existingRule.CidrIp],
+            fromPort: rule.fromPort,
+            ToPort: rule.ToPort
+          };
+          const revoke = AwsOpener.revokeRule(revokeRule);
+          if (revoke.result) {
+            AppStore.printEvent(`Success - previous rule with same description revoked. ${JSON.stringify(revokeRule)}`);
+          }
+        }
       } else {
         AppStore.printEvent(`Error - failed to add rule. ${r.message}`);
       }
@@ -61,14 +98,25 @@ class RuleOpenerForm extends React.Component {
     this.setState({ updatingIp: true });
     try {
       const dic = { };
-      for (let i = 0; i < 6; i += 1) {
-        const r = await AwsOpener.getMyIp();
-        if (!dic[r]) {
-          dic[r] = 1;
-          AppStore.ruleForm.ipList = Object.keys(dic).join(', ');
-        }
+      const promises = [];
+      for (let i = 0; i < 4; i += 1) {
+        promises.push(AwsOpener.getMyIp());
       }
-      AppStore.printEvent(`Ip detected. ${Object.keys(dic).join(', ')}`);
+      const results = await Promise.all(promises);
+      results.forEach((r) => {
+        r.forEach((i) => {
+          if (!dic[i]) {
+            dic[i] = 1;
+          }
+        });
+      });
+      const ips = Object.keys(dic).join(', ');
+      AppStore.ruleForm.ipList = ips;
+      if (!ips) {
+        AppStore.printEvent('Error getting my ip. Check you internet connection.');
+      } else {
+        AppStore.printEvent(`Ip detected. ${ips}`);
+      }
     } catch (err) {
       AppStore.printEvent(`Error getting my ip. Check you internet connection. ${err.message}`);
     }
