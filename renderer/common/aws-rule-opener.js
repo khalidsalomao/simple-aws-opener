@@ -24,10 +24,6 @@ async function getMyIp() {
   return ipList;
 }
 
-function getLastCmd() {
-  return runner.lastCmd;
-}
-
 async function listRegions() {
   const args = ['ec2', 'describe-regions'];
 
@@ -158,7 +154,6 @@ async function revokeRule(rule) {
 // return {};
 
 export default {
-  getLastCmd,
   getMyIp,
   listRegions,
   listGroups,

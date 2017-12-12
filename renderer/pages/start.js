@@ -6,7 +6,7 @@ import Terminal from '../components/terminal';
 import FavoriteRules from '../components/favorite-rules';
 import RuleOpenerForm from '../components/rule-opener-form';
 import AwsOpener from '../common/aws-rule-opener';
-
+import runner from '../common/runner';
 import AppStore from '../store/app-store';
 
 async function loadAWSRegions() {
@@ -28,6 +28,7 @@ async function loadAWSRegions() {
 @observer
 class Start extends React.Component {
   componentDidMount() {
+    runner.setPrintCmd(cmd => AppStore.printEvent(cmd));
     loadAWSRegions();
   }
 

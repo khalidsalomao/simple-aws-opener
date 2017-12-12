@@ -1,6 +1,11 @@
 import ChildProcess from 'child_process';
 import logger from '../common/logger';
 
+let printCmd;
+function setPrintCmd(callback) {
+  printCmd = callback;
+}
+
 function prepareArgs(args) {
   return typeof args === 'string' ? args.trim().replace(/ {2}/g, '').split(' ') : args;
 }
@@ -9,6 +14,9 @@ function runCmd(cmd, args) {
   /* eslint-disable no-use-before-define */
   if (runner) {
     runner.lastCmd = `${cmd} ${prepareArgs(args).join(' ')}`;
+  }
+  if (typeof (printCmd) === 'function') {
+    printCmd(runner.lastCmd);
   }
   /* eslint-enable no-use-before-define */
 
@@ -52,6 +60,8 @@ function runCmd(cmd, args) {
 }
 
 const runner = {
+  lastCmd: '',
+  setPrintCmd,
   runCmd,
 };
 
