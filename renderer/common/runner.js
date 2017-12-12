@@ -6,13 +6,24 @@ function prepareArgs(args) {
 }
 
 function runCmd(cmd, args) {
+  /* eslint-disable no-use-before-define */
+  if (runner) {
+    runner.lastCmd = `${cmd} ${prepareArgs(args).join(' ')}`;
+  }
+  /* eslint-enable no-use-before-define */
+
   logger.debug(cmd, prepareArgs(args).join(' '));
+
   return new Promise((resolve, reject) => {
     const child = ChildProcess.spawn(cmd, prepareArgs(args));
     let resp = '';
     let done = false;
 
     child.stdout.on('data', (buffer) => {
+      resp += buffer.toString();
+    });
+
+    child.stderr.on('data', (buffer) => {
       resp += buffer.toString();
     });
 
@@ -40,6 +51,8 @@ function runCmd(cmd, args) {
   });
 }
 
-export default {
+const runner = {
   runCmd,
 };
+
+export default runner;

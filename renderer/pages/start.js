@@ -16,6 +16,7 @@ async function loadAWSRegions() {
       AppStore.setAwsRegions(r.Regions.map(i => i.RegionName));
     }
   } catch (e) {
+    console.error(e);
     if (e.message.indexOf('ENOENT') >= 0) {
       AppStore.sendAwsCliNotFound();
     } else {

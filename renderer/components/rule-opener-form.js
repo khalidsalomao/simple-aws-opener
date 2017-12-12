@@ -40,36 +40,36 @@ class RuleOpenerForm extends React.Component {
         AppStore.printEvent(`Error loading security group. Response: ${JSON.stringify(details)}`);
         return;
       }
+      const sgGroup = details.SecurityGroups[0];
+      rule.groupName = sgGroup.GroupName || sgGroup.Description || rule.groupName;
+      rule.groupId = sgGroup.GroupId || rule.groupId;
 
-      rule.groupName = details.GroupName || details.Description || rule.groupName;
-      rule.groupId = details.GroupId || rule.groupId;
+      const ipRanges = (sgGroup.IpPermissions || []).find(i => i.FromPort == rule.fromPort && i.ToPort == rule.toPort).IpRanges || []; // eslint-disable-line eqeqeq
 
-      //   AppStore.printEvent(r.SecurityGroups[0].IpPermissions.find(i => i.FromPort === 1433));
-      //   const ips = r.SecurityGroups[0].IpPermissions.find(i => i.FromPort === 1433).IpRanges;
-      //   AppStore.printEvent(ips.find(i => i.Description === 'khalid.salomao'));
-      //   AppStore.printEvent(ips.find(i => i.CidrIp === '186.242.106.205/32'));
-      // Description: "db-production-2", GroupName: "db-production-2"
-      // CidrIp:"187.99.255.237/32" , Description:"bunker"
-      const ipRanges = (details.SecurityGroups[0].IpPermissions || []).find(i => i.FromPort == rule.fromPort && i.ToPort == rule.toPort).IpRanges || [];
+      const existingRules = ipRanges.filter(i =>
+        (i.Description || '').toLowerCase() === rule.description.toLowerCase()
+        && i.CidrIp
+        && (rule.ipList.indexOf(i.CidrIp) < 0));
+      const existingIpList = existingRules.map(i => i.CidrIp);
 
-      const existingRule = ipRanges.find(i => (i.Description || '').toLowerCase() === rule.description.toLowerCase());
-
-      const r = await AwsOpener.addRule(rule);
+      const r = await AwsOpener.addRule(rule, existingIpList);
       if (r.result) {
         AppStore.addFavorite(rule);
         AppStore.printEvent(`Success - rule added to security group. ${JSON.stringify(rule)}`);
 
-        if (existingRule && existingRule.CidrIp) {
-          const revokeRule = {
-            region: rule.region,
-            groupId: rule.groupId,
-            ipList: [existingRule.CidrIp],
-            fromPort: rule.fromPort,
-            ToPort: rule.ToPort
-          };
-          const revoke = AwsOpener.revokeRule(revokeRule);
-          if (revoke.result) {
-            AppStore.printEvent(`Success - previous rule with same description revoked. ${JSON.stringify(revokeRule)}`);
+        if (existingRules && existingRules.length) {
+          for (const e of existingRules) {
+            const revokeRule = {
+              region: rule.region,
+              groupId: rule.groupId,
+              ipList: [e.CidrIp],
+              fromPort: rule.fromPort,
+              ToPort: rule.toPort || rule.fromPort
+            };
+            const revoke = AwsOpener.revokeRule(revokeRule);
+            if (revoke.result) {
+              AppStore.printEvent(`Success - previous rule with same description revoked. ${JSON.stringify(revokeRule)}`);
+            }
           }
         }
       } else {

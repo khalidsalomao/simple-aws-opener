@@ -2,6 +2,8 @@ import axios from 'axios';
 import http from 'http';
 import runner from './runner';
 
+const awsCliPath = '/usr/local/bin/aws';
+
 // https://askubuntu.com/questions/95910/command-for-determining-my-public-ip
 const ipAddressRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 const ipServices = ['ipinfo.io/ip', 'icanhazip.com'];
@@ -22,10 +24,14 @@ async function getMyIp() {
   return ipList;
 }
 
+function getLastCmd() {
+  return runner.lastCmd;
+}
+
 async function listRegions() {
   const args = ['ec2', 'describe-regions'];
 
-  const result = await runner.runCmd('aws', args);
+  const result = await runner.runCmd(awsCliPath, args);
   return JSON.parse(result || '{}');
 }
 
@@ -47,12 +53,12 @@ async function listGroups(group, region) {
     args.push(groupName);
   }
 
-  const result = await runner.runCmd('aws', args);
+  const result = await runner.runCmd(awsCliPath, args);
   return JSON.parse(result || '{}');
 }
 
-async function addRule(rule) {
-  if (!rule || !rule.ipList || !rule.ipList.length || !rule.description) {
+async function addRule(rule, excludeIpList) {
+  if (!rule || !rule.ipList || !rule.ipList.length || !rule.description || !rule.fromPort) {
     throw new Error('Invalid rule');
   }
   const args = ['ec2', 'authorize-security-group-ingress'];
@@ -70,11 +76,13 @@ async function addRule(rule) {
     throw new Error('Invalid group name or Id');
   }
 
+  excludeIpList = excludeIpList || [];
+
   const permissions = [{
     IpProtocol: rule.ipProtocol || 'tcp',
     FromPort: parseInt(rule.fromPort, 10),
-    ToPort: parseInt(rule.toPort, 10),
-    IpRanges: rule.ipList.map(i => ({
+    ToPort: parseInt(rule.toPort || rule.fromPort, 10),
+    IpRanges: rule.ipList.filter(i => excludeIpList.indexOf(i) <= 0).map(i => ({
       CidrIp: i,
       Description: rule.description
     }))
@@ -83,7 +91,8 @@ async function addRule(rule) {
   args.push('--ip-permissions');
   args.push(JSON.stringify(permissions));
 
-  const r = await runner.runCmd('aws', args);
+  const r = await runner.runCmd(awsCliPath, args);
+
   console.info(r);
   return {
     result: !r,
@@ -92,7 +101,7 @@ async function addRule(rule) {
 }
 
 async function revokeRule(rule) {
-  if (!rule || !rule.ipList || !rule.ipList.length) {
+  if (!rule || !rule.ipList || !rule.ipList.length || !rule.fromPort) {
     throw new Error('Invalid rule');
   }
   const args = ['ec2', 'revoke-security-group-ingress'];
@@ -113,7 +122,7 @@ async function revokeRule(rule) {
   const permissions = [{
     IpProtocol: rule.ipProtocol || 'tcp',
     FromPort: parseInt(rule.fromPort, 10),
-    ToPort: parseInt(rule.toPort, 10),
+    ToPort: parseInt(rule.toPort || rule.fromPort, 10),
     IpRanges: rule.ipList.map(i => ({
       CidrIp: i,
       Description: rule.description
@@ -123,7 +132,7 @@ async function revokeRule(rule) {
   args.push('--ip-permissions');
   args.push(JSON.stringify(permissions));
 
-  const r = await runner.runCmd('aws', args);
+  const r = await runner.runCmd(awsCliPath, args);
   console.info(r);
   return {
     result: !r,
@@ -149,6 +158,7 @@ async function revokeRule(rule) {
 // return {};
 
 export default {
+  getLastCmd,
   getMyIp,
   listRegions,
   listGroups,

@@ -16,16 +16,23 @@ class FavoriteRules extends React.Component {
     AppStore.clear();
   }
 
+  onDelete() {
+    const list = AppStore.selectedRules.slice();
+    for (const i of list) {
+      AppStore.removeFavorite(i);
+    }
+    AppStore.toggleSelection(false);
+  }
+
   onRowSelection = (rowId, checked/* , selCount, e */) => {
     if (rowId === 0) {
-      AppStore.selectedRules = checked ?
-        AppStore.favorites.slice() :
-        [];
+      AppStore.toggleSelection(checked);
     } else if (checked) {
       AppStore.addSelection(AppStore.favorites[rowId - 1]);
     } else {
       AppStore.removeSelection(AppStore.favorites[rowId - 1]);
     }
+    console.log(AppStore.selectedRules.slice());
   }
 
   renderListHeadRow(n) {
@@ -75,7 +82,8 @@ class FavoriteRules extends React.Component {
         </div>
 
         <div className="md-cell--3">
-          <Button raised onClick={this.onClearClick}>Clear</Button>
+          <Button raised onClick={this.onDelete} disabled={AppStore.isEmptySelection}>Delete</Button>
+          <Button raised onClick={this.onClearClick}>Clear All</Button>
         </div>
       </div>
     );

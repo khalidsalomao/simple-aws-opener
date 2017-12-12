@@ -1,22 +1,26 @@
 {
   "name": "simple-aws-opener",
   "productName": "Simple Aws Opener",
+  "description": "Simple Aws Opener",
+  "author": "Khalid Salomão",
   "version": "1.0.0",
   "main": "main/index.js",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "build": "next build renderer && next export renderer",
+    "build": "rm -rf renderer/out && next build renderer && next export renderer",
     "build-electron": "./node_modules/.bin/electron ./node_modules/.bin/next build renderer && ./node_modules/.bin/electron ./node_modules/.bin/next export renderer",
-    "dist": "yarn run build && build --dir",
-    "lint": "yarn eslint renderer",
-    "test": "yarn jest"
+    "dist": "rm -rf dist && yarn run build && electron-builder --dir",
+    "lint": "yarn eslint renderer/common renderer/components renderer/pages renderer/static renderer/store",
+    "test": "yarn jest",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "files": [
       "**/*",
       "!renderer",
-      "renderer/out"
+      "renderer/out",
+      "renderer/out/**/*"
     ]
   },
   "devDependencies": {
@@ -31,7 +35,7 @@
     "eslint-plugin-jsx-a11y": "^6.0.2",
     "eslint-plugin-react": "^7.4.0",
     "jest": "^21.2.1",
-    "next": "latest",
+    "next": "^4.2.1",
     "react": "^16.1.1",
     "react-dom": "^16.1.1"
   },
@@ -51,7 +55,7 @@
     "automock": false,
     "setupTestFrameworkScriptFile": "<rootDir>/jest-setup.js",
     "setupFiles": [
-      "<rootDir>/shim.js"
+      "<rootDir>/jest-shim.js"
     ]
   }
 }

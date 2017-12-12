@@ -1,10 +1,12 @@
-import { observable } from 'mobx';
-import storage from 'electron-json-storage';
+import { observable, computed, action } from 'mobx';
 
 import logger from '../common/logger';
+import { getStorage } from '../common/file-storage';
+
 
 function saveToDisk(key, data) {
-  storage.set(key, data, null, (err) => {
+  if (!getStorage()) { return; }
+  getStorage().set(key, data, null, (err) => {
     if (err) {
       logger.error(`storage set ${key}`, err);
     }
@@ -26,7 +28,6 @@ function mostOcurrences(list, name) {
   return top;
 }
 
-// TODO: refine this match
 function ruleEquals(ruleA, ruleB) {
   console.log(ruleA, ruleB);
   if (!ruleA.id || !ruleB.id) {
@@ -70,13 +71,15 @@ class AppStore {
   }
 
   async init() {
-    const storageMode = (process.env.STORAGEMODE || '').trim().toLowerCase();
-    if (storageMode === 'tmpdir') {
-      storage.setDataPath(require('os').tmpdir()); // eslint-disable-line global-require
-    }
-    logger.debug(`Local storage location: ${storage.getDataPath()}`);
+    if (getStorage()) {
+      const storageMode = (process.env.STORAGEMODE || '').trim().toLowerCase();
+      if (storageMode === 'tmpdir') {
+        getStorage().setDataPath(require('os').tmpdir()); // eslint-disable-line global-require
+      }
+      logger.debug(`Local storage location: ${getStorage().getDataPath()}`);
 
-    this.reload();
+      this.reload();
+    }
   }
 
   addFavorite(rule) {
@@ -98,9 +101,9 @@ class AppStore {
     saveToDisk('favorite-rules', list);
   }
 
-
-  reload() {
-    storage.get('favorite-rules', null, (err, data) => {
+  @action reload() {
+    if (!getStorage()) { return; }
+    getStorage().get('favorite-rules', null, (err, data) => {
       if (err) {
         logger.error('failed to load from storage', err);
       }
@@ -118,7 +121,7 @@ class AppStore {
       }
     });
 
-    storage.get('aws-regions', null, (err, data) => {
+    getStorage().get('aws-regions', null, (err, data) => {
       if (err) {
         logger.error('failed to load from storage', err);
       }
@@ -183,9 +186,13 @@ class AppStore {
     };
   }
 
-  addSelection(rule) {
+  @computed get isEmptySelection() {
+    return !this.selectedRules.length;
+  }
+
+  @action addSelection(rule) {
     if (rule) {
-      const list = (this.selectedRules || []).slice().filter(r => rule.id === r.id);
+      const list = (this.selectedRules || []).slice().filter(r => rule.id !== r.id);
       list.push(rule);
       this.selectedRules = list;
       this.setRuleForm(rule);
@@ -193,7 +200,13 @@ class AppStore {
   }
 
   removeSelection(rule) {
-    this.selectedRules = (this.selectedRules || []).slice().filter(r => rule.id === r.id);
+    this.selectedRules = (this.selectedRules || []).slice().filter(r => rule.id !== r.id);
+  }
+
+  toggleSelection(checked) {
+    this.selectedRules = checked ?
+      this.favorites.slice() :
+      [];
   }
 }
 

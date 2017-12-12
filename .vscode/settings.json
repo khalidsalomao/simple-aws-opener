@@ -4,6 +4,7 @@
   "search.exclude": {
     "**/node_modules": true,
     "**/.next": true,
-    "**/renderer/out": true
+    "**/renderer/out": true,
+    "**/dist": true
   }
 }
