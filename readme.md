@@ -38,7 +38,7 @@ aws configure
 
 2. Download installation file
 
-- [Latest Release](releases/)
+- [Latest Release](../../releases/)
 
 
 ### Development
